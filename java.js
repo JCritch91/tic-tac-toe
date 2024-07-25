@@ -34,12 +34,15 @@ function gameboard(row, column){
         for (let c = 0; c < columns; c++){
             board[r][c] = cell()
         }}
-
-/*         const gridCell = document.querySelectorAll('.gridCell')
-        gridCell.forEach(function(div){
-            div.textContent =''
-            }) */
     } 
+
+    const resetGrid = () =>{
+    const gridCell = document.querySelectorAll('.gridCell')
+    gridCell.forEach(function(div){
+        div.textContent =''
+        })
+    }
+
 
     const boardValidation = (player) => {
         let columnResult =''
@@ -87,23 +90,25 @@ function gameboard(row, column){
         }
     }
 
-    return{getBoard, dropMarker, printBoard, printCell, boardValidation , resetBoard }
+    return{getBoard, dropMarker, printBoard, printCell, boardValidation , resetBoard, resetGrid }
 }
 
 // marker / cell function to control how the marker is passed to the gameboard
-function cell(){
-    let markerValue = 0
-    const addMarker = (player) =>{
-        markerValue = player
+    function cell(){
+        let markerValue = 0
+        const addMarker = (player) =>{
+            markerValue = player
+        }
+        const getValue = () => markerValue
+        return {addMarker, getValue}
     }
-    const getValue = () => markerValue
-    return {addMarker, getValue}
-}
 
-function gameController(
-    playerOneName = 'Player One',
-    playerTwoName = 'PlayerTwo'
-){
+// game conroller function to control how the game flows
+
+    function gameController(
+        playerOneName = 'Player One',
+        playerTwoName = 'PlayerTwo'
+    ){
     const board = gameboard()
     const players = [{
         name: playerOneName,
@@ -141,36 +146,44 @@ function gameController(
         board.printCell(row, column)
         const validate = board.boardValidation(getActivePlayer().marker)
         const boardCell = document.getElementById(`${id}`)
+        const dialog = document.getElementById('winnerDialog')
+        dialog.addEventListener('click',()=>{
+            board.resetBoard()
+            board.resetGrid()
+            dialog.close()
+
+        })
+
         boardCell.textContent = getActivePlayer().marker
         if (validate == 'win'){
-             board.resetBoard()
-            alert(`${getActivePlayer().name} Wins!`)
+            dialog.inert = true
+            dialog.showModal()
+            dialog.inert = false
+            dialog.textContent = `${getActivePlayer().name} Wins!`
         }
         else if (validate == 'draw'){
-             board.resetBoard()
-            alert("It's a draw")
+            dialog.inert = true
+            dialog.showModal()
+            dialog.inert = false
+            dialog.textContent = `It's a Draw`
         }
-
-        switchPlayer()
-        printRound()
+        else{
+            switchPlayer()
+            printRound()
+        }
     }}
-
-    printRound()
 
     const gridCell = document.querySelectorAll('.gridCell')
     gridCell.forEach(function(div){
         div.addEventListener('click', () =>{
-            game.playRound(div.id.substring(0,1), div.id.substring(2,3), div.id)
+        game.playRound(div.id.substring(0,1), div.id.substring(2,3), div.id)
         })
     })
 
     const resetButton = document.querySelector('.reset')
     resetButton.addEventListener('click', ()=>{
         board.resetBoard()
-        const gridCell = document.querySelectorAll('.gridCell')
-        gridCell.forEach(function(div){
-            div.textContent =''
-            })
+        board.resetGrid()
     })
 
     return{
